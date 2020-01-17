@@ -6,6 +6,7 @@
       :validate = "computedRules"
       :val = "inputFieldModel"
       :scope = "scope"
+      :disable-placeholder-errors = "disablePlaceholderErrors"
       @validation = "handleValidation"
       @coc-atom-control = "atomControllers = $event"/>
     <coc-axios
@@ -230,6 +231,10 @@ export default {
       type: [Object, Function],
       default: null
     },
+    disablePlaceholderErrors: {
+      type: Boolean,
+      default: false
+    },
     statusClasses: {
       type: Object,
       default() {
@@ -256,6 +261,20 @@ export default {
     autocompleteFetchOnce: {
       type: Boolean,
       default: false
+    },
+    autocompletePreventDebounce: {
+      type: Boolean,
+      default: false
+    },
+    autocompleteDebouncedTime: {
+      type: Number,
+      default: 500
+    },
+    autocompleteDebouncedOptions: {
+      type: Object,
+      default() {
+        return { maxWait: 1000 }
+      }
     },
     hideStatus: {
       type: Boolean,
@@ -320,6 +339,17 @@ export default {
           isFocused: this.isFocused,
           query: this.query
         }
+      }
+    },
+    autocompleteInvoker() {
+      if (this.autocompletePreventDebounce) {
+        return this.autocompleteRetriever.retrieve
+      } else {
+        return this.$_.debounce(
+          this.autocompleteRetriever.retrieve,
+          this.autocompleteDebouncedTime,
+          this.autocompleteDebouncedOptions
+        )
       }
     },
     autocompleteComputedOptions() {
@@ -523,7 +553,7 @@ export default {
         this.autocompleteRemote &&
         !this.autocompleteFetchOnce
       ) {
-        this.autocompleteRetriever.retrieve()
+        this.autocompleteInvoker()
       }
     },
     handleClear() {

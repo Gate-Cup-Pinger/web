@@ -9,6 +9,7 @@
       :val = "inputFieldModel"
       :scope = "scope"
       :filters = "filters"
+      :disable-placeholder-errors = "disablePlaceholderErrors"
       @validation = "handleValidation"
       @filter = "handleAtomFilter"
       @coc-atom-control = "atomControllers = $event"/>
@@ -323,6 +324,10 @@ export default {
       type: [Object, Function],
       default: null
     },
+    disablePlaceholderErrors: {
+      type: Boolean,
+      default: false
+    },
     statusClasses: {
       type: Object,
       default() {
@@ -349,6 +354,20 @@ export default {
     autocompleteFetchOnce: {
       type: Boolean,
       default: false
+    },
+    autocompletePreventDebounce: {
+      type: Boolean,
+      default: false
+    },
+    autocompleteDebouncedTime: {
+      type: Number,
+      default: 500
+    },
+    autocompleteDebouncedOptions: {
+      type: Object,
+      default() {
+        return { maxWait: 1000 }
+      }
     },
     filters: {
       type: [String, Function, Array],
@@ -416,6 +435,17 @@ export default {
           id: this.componentId,
           filtered: null
         }
+      }
+    },
+    autocompleteInvoker() {
+      if (this.autocompletePreventDebounce) {
+        return this.autocompleteRetriever.retrieve
+      } else {
+        return this.$_.debounce(
+          this.autocompleteRetriever.retrieve,
+          this.autocompleteDebouncedTime,
+          this.autocompleteDebouncedOptions
+        )
       }
     },
     autocompleteComputedOptions() {
@@ -612,7 +642,7 @@ export default {
         this.autocompleteRemote &&
         !this.autocompleteFetchOnce
       ) {
-        this.autocompleteRetriever.retrieve()
+        this.autocompleteInvoker()
       }
     },
     handleSelect(e) {
@@ -639,7 +669,7 @@ export default {
       this.$emit('coc-autocomplete-error', e)
     },
     handleValue(val) {
-      if (!val) {
+      if (val === false || val === null || val === undefined) {
         return
       }
       if (typeof val === 'object') {

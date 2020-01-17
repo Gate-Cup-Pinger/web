@@ -1,10 +1,11 @@
+
 <template>
   <master>
     <div v-if = "user">
       <div class="row">
         <span class = "coc-text-bold coc-text-md-2">
           Stock
-          <span v-if = "stock.stock && stock.stock.length">({{ stock.stock.length }})</span>
+          <span v-if = "stock.stock && !isLoading && !hasError && stock.stock.length && isMounted">({{ stock.stock.length }})</span>
         </span>
         <Button
           icon = "ios-funnel-outline"
@@ -28,13 +29,13 @@
               <div class="row coc-house-keeper">
                 <Divider 
                   class = "coc-margin-y-0" 
-                  orientation = "left"><span class = "coc-text-bold coc-info-shade-4-text">Item Data</span> </Divider>
+                  orientation = "left"><span class = "coc-text-bold coc-info-shade-4-text coc-text-sm">Item Data</span> </Divider>
                 <div class = "col s12 l6">
-                  <p class = "coc-content-text coc-text-normal-2">Part Name</p>
                   <coc-input
                     v-model = "input.part"
                     :autocomplete-remote = "model => ({ method: 'get', url: '/stock', params: { part: model.val, limit: 5 } } )"
                     :autocomplete-map-response = "(res) => $_.uniqBy(res.stock.filter(s => !!s.name), j => j.name).map(j => j.name)"
+                    labeled
                     icon = "ios-search"
                     placeholder = "Search by Part Name.."
                     class = "coc-house-keeper"
@@ -43,27 +44,24 @@
                     light-model />
                 </div>
                 <div class = "col s12 l6">
-                  <p class = "coc-content-text coc-text-normal-2">Status</p>
                   <coc-select
-                    v-model = "input.status"
-                    placeholder = "Status.."
+                    v-model = "input.category"
+                    :autocomplete-remote = "model => ({ method: 'get', url: '/stock', params: { categoryac: model.meta.query, limit: 5 } } )"
+                    :autocomplete-map-response = "(res) => $_.uniqBy(res.stock.filter(s => !!s.category), j => j.category).map(j => j.category)"
+                    placeholder = "Category.."
+                    labeled
+                    filterable
                     light-model
-                    clearable>
-                    <template slot-scope = "{options}">
-                      <Option
-                        value = "instock"
-                        label = "In Stock"/>
-                      <Option
-                        value = "outofstock"
-                        label = "Out Of Stock"/>
-                    </template>
-                  </coc-select>
+                    multiple
+                    allow-autocomplete
+                    clearable />
                 </div>
                 <div class="col s12 l6">
-                  <p class = "coc-content-text coc-text-normal-2">Entery Time</p>
+                  <p class = "coc-content-text coc-text-small">Entery Time</p>
                   <DatePicker 
                     v-model = "input.date"
-                    :start-date="$moment().toDate()" 
+                    :start-date="$moment().toDate()"
+                    labeled 
                     type="daterange" 
                     placement="bottom-end" 
                     placeholder="Select date" 
@@ -72,11 +70,11 @@
               </div>
               <div class="row coc-house-keeper">
                 <div class = "col s12 l6">
-                  <p class = "coc-content-text coc-text-normal-2">Price Range</p>
                   <Slider 
                     v-model="input.price"
                     :step = "config.price.step"
-                    :max = "config.price.max" 
+                    :max = "config.price.max"
+                    labeled 
                     range 
                     show-stops/>
                 </div>
@@ -106,14 +104,14 @@
               </div>
               <Divider 
                 class = "coc-margin-y-0" 
-                orientation = "left"><span class = "coc-text-bold coc-info-shade-4-text">Vendor Data</span> </Divider>
+                orientation = "left"><span class = "coc-text-bold coc-info-shade-4-text coc-text-sm">Vendor Data</span> </Divider>
               <div class="row coc-house-keeper">
                 <div class = "col s12 l6">
-                  <p class = "coc-content-text coc-text-normal-2">Vendor Phone</p>
                   <coc-input
                     v-model = "input.phone"
                     :autocomplete-remote = "model => ({ method: 'get', url: '/stock', params: { phone: model.val, limit: 5 } } )"
                     :autocomplete-map-response = "(res) => $_.uniqBy(res.stock.filter(s => !!s.vendor), j => j.vendor.phone).map(j => j.vendor.phone)"
+                    labeled
                     icon = "ios-search"
                     placeholder = "Search by Phone.."
                     class = "coc-house-keeper"
@@ -122,11 +120,11 @@
                     light-model />
                 </div>
                 <div class = "col s12 l6">
-                  <p class = "coc-content-text coc-text-normal-2">Vendor Name</p>
                   <coc-input
                     v-model = "input.name"
                     :autocomplete-remote = "model => ({ method: 'get', url: '/stock', params: { name: model.val, limit: 5 } } )"
                     :autocomplete-map-response = "(res) => $_.uniqBy(res.stock.filter(s => !!s.vendor), j => j.vendor.name).map(j => j.vendor.name)"
+                    labeled
                     icon = "ios-search"
                     placeholder = "Search by vendor name.."
                     class = "coc-house-keeper"
@@ -137,14 +135,15 @@
               </div>
               <Divider 
                 class = "coc-margin-y-0" 
-                orientation = "left"><span class = "coc-text-bold coc-info-shade-4-text">Car Compatibility</span> </Divider>
+                orientation = "left"><span class = "coc-text-bold coc-info-shade-4-text coc-text-sm">Car Compatibility</span> </Divider>
               <div class="row coc-house-keeper">
                 <div class = "col s12 l6">
-                  <p class = "coc-content-text coc-text-normal-2">Car Brand</p>
                   <coc-select
                     v-model = "input.brand"
                     :autocomplete-remote = "model => ({ method: 'get', url: '/job', params: { brandac: model.val, limit: 5 } } )"
                     :autocomplete-map-response = "(res) => $_.uniqBy(res.stocks, j => j.car.brand).map(j => j.car.brand)"
+                    :data = "brands"
+                    labeled
                     icon = "ios-search"
                     placeholder = "Search by Car Brand.."
                     class = "coc-house-keeper"
@@ -155,29 +154,25 @@
                     light-model />
                 </div>
                 <div class = "col s12 l6">
-                  <p class = "coc-content-text coc-text-normal-2">Car Model</p>
-                  <coc-select
-                    v-model = "input.model"
-                    :autocomplete-remote = "model => ({ method: 'get', url: '/job', params: { modelac: model.val, limit: 5 } } )"
-                    :autocomplete-map-response = "(res) => $_.uniqBy(res.stocks, j => j.car.model).map(j => j.car.model)"
+                  <coc-input
+                    v-model = "input.modelac"
+                    labeled
                     icon = "ios-search"
                     placeholder = "Search by car model.."
                     class = "coc-house-keeper"
-                    allow-autocomplete
                     clearable
                     filterable
                     multiple
                     light-model />
                 </div>
                 <div class="col s12 l6">
-                  <p class = "coc-content-text coc-text-normal-2">Realse Year</p>
                   <coc-select
                     v-model = "input.release"
                     :rules = "{ HasValue: true }"
                     :data = "generateYears()"
+                    labeled
                     placeholder = "Release Year"
                     icon = "ios-calendar"
-                    size = "large"
                     filterable
                     clearable
                     multiple
@@ -186,12 +181,12 @@
               </div>
               <Divider 
                 class = "coc-margin-y-0" 
-                orientation = "left"><span class = "coc-text-bold coc-info-shade-4-text">Sorting</span> </Divider>
+                orientation = "left"><span class = "coc-text-bold coc-info-shade-4-text coc-text-sm">Sorting</span> </Divider>
               <div class="row">
                 <div class = "col s12 l6">
-                  <p class = "coc-content-text coc-text-normal-2">Sort By</p>
                   <coc-select
                     v-model = "input.sort"
+                    labeled
                     placeholder = "Sort By.."
                     light-model>
                     <template slot-scope = "{options}">
@@ -207,9 +202,9 @@
                     </template>
                   </coc-select>
                 </div>
-                <div class = "col s12 l6 right">
-                  <p class = "coc-content-text coc-text-normal-2">Arrangement</p>
+                <div class = "col s12 l6 right coc-margin-top-20px">
                   <button-group
+                    labeled
                     shape = "circle"
                     class = "coc-full-width"
                     long>
@@ -254,81 +249,169 @@
           size = "large"
           style = "width: 100%" />
       </Drawer>
-      <table
-        v-if = "isMounted && stock && stock.stock.length"
-        class = "coc-full-width">
-        <tr>
-          <th 
-            v-for = "(col, c) in columns" 
-            :key = "c"
-            class = "coc-primary-bg coc-padding-y-10px coc-background-text">
-            {{ col.title }}
-          </th>
-        </tr>
-        <tr 
-          v-for = "(stock, s) in stock.stock" 
-          :key = "s"
-          class = "coc-border-border center coc-info-hover-tint-8-bg">
-          <td class="coc-border-bottom-1 coc-border-0 coc-border-border coc-padding-y-10px">{{ stock.name }}</td>
-          <td class="coc-border-bottom-1 coc-border-0 coc-border-border coc-padding-y-10px">{{ stock.category }}</td>
-          <td class="coc-border-bottom-1 coc-border-0 coc-border-border coc-padding-y-10px">{{ stock.price }}</td>
-          <td class="coc-border-bottom-1 coc-border-0 coc-border-border coc-padding-y-10px">{{ stock.count }}</td>
-          <td 
-            class="coc-border-bottom-1 coc-border-0 coc-border-border coc-padding-y-10px" 
-            style=" width: 300px;">
-            <coc-collapse
-              v-if = "stock.car_compatibility && stock.car_compatibility.length"
-              :title = "`(${stock.car_compatibility.length}) car/s are compatible`"
-              :animations = "{'enter':'animated fadeIn','leave':'animated slideOutUp hidden'}"
-              icon = "tcsc-motor-1-icon coc-text-lg-1"
-              toggler-class = "row house-keeper pointer transparent coc-border-0"
-              regular-class = "coc-text-body coc-primary-text"
-              active-class = "coc-text-md-1 coc-primary-text">
-              <CellGroup slot = "content">
-                <Cell 
-                  v-for = "(car, c) in stock.car_compatibility" 
-                  :key = "c" 
-                  :label="car.model" 
-                  :extra = "car.release"
-                  class = "animated slideInLeft">
-                  <div class = "row coc-house-keeper">
-                    <coc-avatar
-                      :source = "`/snaps/brands/png/${car.brand.split(' ').join('-').toLowerCase()}.png`"
-                      scale = "25px"
-                      class = "col coc-padding-x-2px"/>
-                    <span class="col coc-margin-x-0px">
-                      {{ car.brand | CocCapitalizeName }}
-                    </span>
-                  </div>
-                </Cell>
-              </CellGroup>
-            </coc-collapse>
-            <i v-else><small>NONE</small></i>
-          </td>
-          <td
-            class="coc-border-bottom-1 coc-border-0 coc-border-border coc-padding-y-10px"
-            style = "text-align: left !important">
-            <p
-              v-if = "stock.vendor"
-              class = "coc-padding-left-5px">
-              <Icon type = "ios-person" /> {{ stock.vendor.name }} <br>
-              <a :href="`tel:${stock.vendor.phone}`"><Icon type = "ios-call" /> {{ stock.vendor.phone }}</a> <br>
-              <Icon type = "ios-navigate" /> {{ stock.vendor.address }} <br>
-            </p>
-            <i v-else><small>NONE</small></i>
-          </td>
-        </tr>
-        <tr v-if = "stock.stock && stock.stock.length">
-          <td />
-          <td />
-          <td class="center coc-text-bold">Total {{ $_.sumBy(stock.stock, o => o.price) }} LE</td>
-          <td />
-        </tr>
-      </table>
+      <div 
+        v-if = "isMounted && stock && stock.stock.length" 
+        class="row coc-house-keeper">
+        <table
+          style = "max-width: 100%;overflow-x: scroll;display: block;"
+          class = "col s12">
+          <tr>
+            <th 
+              v-for = "(col, c) in columns" 
+              :key = "c"
+              class = "coc-primary-bg coc-padding-y-10px coc-background-text coc-padding-x-5px">
+              {{ col.title }}
+            </th>
+          </tr>
+          <tr 
+            v-for = "(stock, s) in stock.stock" 
+            :key = "s"
+            class = "coc-border-border center coc-info-hover-tint-8-bg">
+            <td
+              class="coc-border-bottom-1 coc-border-0 coc-border-border coc-padding-y-10px coc-padding-x-4px"
+              style = "text-align: left">
+              <nuxt-link
+                :to = "`/stock/${stock._id}`">
+                <Tooltip
+                  v-if = "stock.quick_add"
+                  content = "Added on the fly while editing a job">
+                  <span class = "knocksapp-fly3 coc-padding-5px coc-content-bg coc-warning-text coc-circle-border-radius"/>
+                </Tooltip>
+                <Tooltip
+                  v-else
+                  content = "Healthy added from Add Stock Form">
+                  <span class = "knocksapp-live3 coc-padding-5px coc-content-bg coc-success-text coc-circle-border-radius"/>
+                </Tooltip>
+                {{ stock.name }}
+              </nuxt-link>
+            </td>
+            <td class="coc-border-bottom-1 coc-border-0 coc-border-border coc-padding-y-10px coc-padding-x-4px">{{ stock.category }}</td>
+            <td class="coc-border-bottom-1 coc-border-0 coc-border-border coc-padding-y-10px coc-padding-x-4px">{{ stock.price }}</td>
+            <td class="coc-border-bottom-1 coc-border-0 coc-border-border coc-padding-y-10px coc-padding-x-4px">{{ stock.count }}</td>
+            <td 
+              class="coc-border-bottom-1 coc-border-0 coc-border-border coc-padding-y-10px coc-padding-x-4px" 
+              style=" width: 300px;">
+              <coc-collapse
+                v-if = "stock.car_compatibility && stock.car_compatibility.length"
+                :title = "`(${stock.car_compatibility.length}) car/s are compatible`"
+                :animations = "{'enter':'animated fadeIn','leave':'animated slideOutUp hidden'}"
+                icon = "tcsc-motor-1-icon coc-text-lg-1"
+                toggler-class = "row house-keeper pointer transparent coc-border-0"
+                regular-class = "coc-text-body coc-primary-text"
+                active-class = "coc-text-md-1 coc-primary-text">
+                <CellGroup slot = "content">
+                  <Cell 
+                    v-for = "(car, c) in stock.car_compatibility" 
+                    :key = "c" 
+                    :label="car.model" 
+                    :extra = "car.release"
+                    class = "animated slideInLeft">
+                    <div class = "row coc-house-keeper">
+                      <coc-avatar
+                        :source = "`/snaps/brands/png/${car.brand.split(' ').join('-').toLowerCase()}.png`"
+                        scale = "25px"
+                        class = "col coc-padding-x-2px"/>
+                      <span class="col coc-margin-x-0px">
+                        {{ car.brand | CocCapitalizeName }}
+                      </span>
+                    </div>
+                  </Cell>
+                </CellGroup>
+              </coc-collapse>
+              <i v-else><small>NONE</small></i>
+            </td>
+            <td
+              :style = "`text-align: ${ stock.vendor ? 'left' : 'center'} !important`"
+              class="coc-border-bottom-1 coc-border-0 coc-border-border coc-padding-y-10px coc-padding-x-4px">
+              <p
+                v-if = "stock.vendor"
+                class = "coc-padding-left-5px">
+                <Icon type = "ios-person" /> {{ stock.vendor.name }} <br>
+                <a :href="`tel:${stock.vendor.phone}`"><Icon type = "ios-call" /> {{ stock.vendor.phone }}</a> <br>
+                <Icon type = "ios-navigate" /> {{ stock.vendor.address }} <br>
+              </p>
+              <i v-else ><small>NONE</small></i>
+            </td>
+            <td
+              class="coc-border-bottom-1 coc-border-0 coc-border-border coc-padding-y-10px center coc-padding-x-7px">
+              <Tooltip content = "Export">
+                <Button
+                  icon = "md-arrow-down coc-error-text"
+                  class = "coc-border-0"
+                  @click = "importStock(stock)" />
+              </Tooltip>
+              <Tooltip content = "Import">
+                <Button
+                  icon = "md-arrow-up coc-success-text"
+                  class = "coc-border-0"
+                  @click = "importStock(stock, -1)" />
+              </Tooltip>
+              <Tooltip content = "Edit">
+                <Button
+                  icon = " knocks-pen-angled coc-warning-text"
+                  class = "coc-border-0"
+                  @click = "editStock(stock)" />
+              </Tooltip>
+              <div class="coc-full-width coc-margin-top-5px">
+                <Tooltip content = "Count">
+                  <input-number
+                    v-model = "moveCount"
+                    :min = "1"
+                    class = "left"/>
+                </Tooltip>
+              </div>
+            </td>
+          </tr>
+          <tr v-if = "stock.stock && stock.stock.length">
+            <td />
+            <td />
+            <td class="center coc-text-bold">Total {{ $_.sumBy(stock.stock, o => o.price) }} LE</td>
+            <td />
+          </tr>
+        </table>
+        <div 
+          v-if = "pagination && stock && stock.stock.length && input.page >= 0"
+          style = " padding-top: 10px !important; margin-top: 5px; margin-bottom: 10px;" 
+          class="col s12 ">
+          <Page
+            :total="pagination.pages"
+            :page-size = "1"
+            :current="pagination.page + 1"
+            :styles = "{margin: 'auto', display: 'block', width: 'fit-content'}"
+            @on-change = "changePage"/>
+        </div>
+      </div>
       <div
-        v-else
+        v-if = "stock && stock.stock && !stock.stock.length && !isLoading && !hasError"
         class = "coc-text-title center">
+        <span class="tcsc-oil-icon"/>
         No Stock Available
+        <div class="row">
+          <Button
+            size = "large"
+            icon = " tcsc-car-battery-1-icon coc-text-md-2"
+            @click = "addStock">Add New</Button>
+        </div>
+      </div>  
+      <div
+        v-coc-loading = "true"
+        v-if = "isLoading && !hasError"
+        style = "height: 40vh"
+        class = "row" />
+      <div
+        v-if = "hasError"
+        class = "coc-text-title center coc-error-text">
+        <icon type="ios-alert-outline"/>
+        Whoops!<br>
+        <small class = "coc-text-xs">Something Went Wrong!<br>Try to refresh</small>
+        <div class="row">
+          <Button
+            size = "large"
+            type = "error"
+            icon = "ios-refresh"
+            ghost
+            @click = "getStock">Refresh</Button>
+        </div>
       </div>
     </div>
     <Card v-else>
@@ -354,18 +437,20 @@
 </template>
 
 <script>
-import AddStock from '~/components/stock/add.vue'
+import brands from '~/plugins/brands'
 import Master from '~/components/common/master'
 export default {
   name: 'Index',
   components: {
-    AddStock,
     Master
   },
   data() {
     return {
+      brands,
       isMounted: false,
       isLoading: true,
+      hasError: false,
+      moveCount: 1,
       stock: { stock: [] },
       columns: [
         {
@@ -385,12 +470,15 @@ export default {
           key: 'count'
         },
         {
-          title: 'Car Compiatablity',
+          title: 'Car Compitiblity',
           key: 'car_compatibility'
         },
         {
           title: 'Vendor',
           key: 'vendor'
+        },
+        {
+          title: 'Actions'
         }
       ],
       config: {
@@ -404,6 +492,7 @@ export default {
       formattedQuery: {},
       input: {
         ignore_external: true,
+        category: [],
         status: null,
         date: null,
         price: [0, 6900],
@@ -412,7 +501,7 @@ export default {
         sort: 'created_at',
         desc: 'yes',
         page: 0,
-        limit: 10
+        limit: 8
       }
     }
   },
@@ -426,8 +515,12 @@ export default {
     setTimeout(() => {
       this.isMounted = true
     }, 1000)
+    this.$root.$on('addStockSuccess', this.formatQuery)
   },
   methods: {
+    addStock() {
+      this.$root.$emit('addStock')
+    },
     askForLogin() {
       this.$root.$emit('askForLogin')
     },
@@ -441,24 +534,27 @@ export default {
       return result
     },
     getStock() {
+      this.isLoading = true
       this.$router.push({
         path: '/stock',
-        query: this.encodedQuery()
+        query: { ...this.formattedQuery }
       })
       this.$axios({
         method: 'get',
         url: '/stock',
         params: { ...this.formattedQuery }
-      }).then(res => {
-        this.stock = res.data
-        this.config.drawer = false
-        this.isLoading = false
-        this.pagination = this.$_.omit(res.data, ['stocks'])
-        this.$router.push({
-          path: '/stock',
-          query: this.encodedQuery()
-        })
       })
+        .then(res => {
+          this.stock = res.data
+          this.config.drawer = false
+          this.isLoading = false
+          this.pagination = this.$_.omit(res.data, ['stock'])
+          this.hasError = false
+        })
+        .catch(() => {
+          this.isLoading = false
+          this.hasError = true
+        })
     },
     decodedQuery(query) {
       const final = this.$_.cloneDeep(query)
@@ -469,7 +565,7 @@ export default {
         final.ignore_external = final.ignore_external === 'yes'
       }
       if (final.page !== undefined) {
-        final.page = parseInt(final.page, 10) - 1
+        final.page = parseInt(final.page, 10) + 1
       }
       // if (final.date) {
       //   final.date = final.date.split(',')
@@ -486,6 +582,10 @@ export default {
       if (final.price) {
         final.price = final.price.split(',')
       }
+      // console.log(final)
+      // window.dq = this.decodedQuery
+      // window.qq = query
+      // window.res = final
       return final
     },
     encodedQuery(input = this.input) {
@@ -496,29 +596,76 @@ export default {
       if (final.ignore_external !== undefined) {
         final.ignore_external = final.ignore_external ? 'yes' : 'no'
       }
-      if (final.page > 0) {
-        final.page = final.page - 1
+      if (final.page !== undefined) {
+        final.page = parseInt(final.page, 10)
+        if (final.page > 0) final.page = final.page - 1
       }
-      // if (final.date) {
-      //   final.date = final.date.join(',')
-      // }
-      if (final.brand) {
+      if (final.date && final.date.join) {
+        final.date = final.date.join(',')
+      } else {
+        final.date = null
+      }
+      if (final.category && final.category.join) {
+        final.category = final.category.join(',')
+      } else {
+        final.category = null
+      }
+      if (final.brand && final.brand.join) {
         final.brand = final.brand.join(',')
+      } else {
+        final.brand = null
       }
-      if (final.model) {
+      if (final.model && final.model.join) {
         final.model = final.model.join(',')
+      } else {
+        final.model = null
       }
-      if (final.release) {
+      if (final.release && final.release.join) {
         final.release = final.release.join(',')
+      } else {
+        final.release = null
       }
-      // if (final.price) {
-      //   final.price = final.price.join(',')
-      // }
+      if (final.price && final.price.join) {
+        final.price = final.price.join(',')
+      } else {
+        final.price = null
+      }
       return final
     },
     formatQuery(input = this.input) {
       this.formattedQuery = this.encodedQuery(input)
       this.getStock()
+    },
+    importStock(stock, factor = 1) {
+      // some code
+      this.isLoading = true
+      this.$axios({
+        method: 'post',
+        url: `/stock/${stock._id}/move`,
+        data: {
+          item: stock,
+          count: this.moveCount * factor
+        }
+      })
+        .then(() => {
+          this.formatQuery()
+          this.isLoading = false
+          this.$Message.success('Done')
+        })
+        .catch(() => {
+          this.isLoading = false
+          this.$Message.error('Stock Not Found')
+        })
+    },
+    editStock(stock) {
+      this.$root.$emit('addStock', {
+        mode: 'put',
+        init: stock
+      })
+    },
+    changePage(e) {
+      this.input.page = e
+      this.formatQuery()
     }
   }
 }

@@ -7,13 +7,15 @@ module.exports = {
    ** Headers of the page
    */
   head: {
-    title: 'Techno-Service',
+    title: 'Gate-Cup',
     meta: [
       { charset: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' }
     ],
     link: [
       { rel: 'icon', type: 'image/x-icon', href: '/snaps/tservice.png' },
+      { rel: 'stylesheet', href: '/knocks/style.css' },
+      { rel: 'stylesheet', href: '/knocksapp/style.css' },
       { rel: 'stylesheet', href: '/tcsc/style.css' }
     ]
   },
@@ -21,7 +23,7 @@ module.exports = {
   /*
    ** Customize the progress-bar color
    */
-  loading: { color: '#2d8cf0' },
+  loading: { color: '#ff9900' },
 
   /*
    ** Global CSS

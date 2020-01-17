@@ -16,6 +16,7 @@
           :class = "onPrint ? 'coc-text-md' : 'coc-text-title'"
           :style="onPrint ? 'margin-top: 10px; font-weight: bold' : 'margin-top: 20px'" 
           class="col coc-margin-x-0px">{{ `${ job.car.brand } / ${ job.car.model }` | CocCapitalizeName }}</span>
+        <br>
         <button-group
           v-if = "!onPrint"
           class = "right">
@@ -29,6 +30,11 @@
             icon = "ios-refresh"
             @click = "getJob" />
         </button-group>
+      </div>
+      <div 
+        v-if = "job" 
+        class="row coc-house-keeper coc-text-bold">
+        <p>Job #{{ job.job_no }}</p>
       </div>
       <component
         v-if = "job"
@@ -155,7 +161,7 @@
               icon = "ios-ionitron"
               light-model />
           </div>
-          <div class="col s12">
+          <!-- <div class="col s12">
             <label class="coc-subcolor-text coc-text-small">Complain</label>
             <coc-input
               v-model = "input.complain"
@@ -166,7 +172,7 @@
               placeholder = "Complain..."
               type = "textarea"
               light-model />
-          </div>
+          </div> -->
           <div class="col s12">
             <label class="coc-subcolor-text coc-text-small">Notes</label>
             <coc-input
@@ -228,6 +234,101 @@
           </div>
           <Divider 
             v-if = "!onPrint"
+            orientation = "left">Requirements</Divider>
+          <div
+            id = "requirements"
+            class="col s12">
+            <div
+              :class = "[
+                { 'coc-margin-y-10px coc-padding-y-10px coc-background-bg coc-border-border coc-border-1 coc-standard-border-radius': !onPrint },
+                { 'coc-margin-y-3px coc-padding-y-3px coc-padding-x-0': onPrint } ]"
+              class="col s12">
+              <p 
+                v-if = "!input.requirements.length"
+                class = "coc-text-body">No Requirements</p>
+              <p 
+                v-if = "onPrint"
+                class = "coc-text-body">Requirements</p>
+              <div 
+                v-for = "(required, i) in input.requirements" 
+                :key = "i"
+                class="row coc-padding-y-3px coc-margin-y-3px coc-border-bottom-1 coc-border-0 coc-border-border animated slideInLeft">
+                <div class = "col s6">
+                  <i-input
+                    v-model = "input.requirements[i].name"
+                    size = "small"
+                    placeholder = "Name"
+                    @input = "input.requirements[i].created_at = $moment()"/>
+                </div>
+                <div class = "col s6">
+                  <Button
+                    :class = "{ hidden: onPrint }"
+                    icon = "ios-trash"
+                    type = "error"
+                    class = "right"
+                    shape = "circle"
+                    @click = "input.requirements.splice(i, 1)"/>
+                  <i-switch
+                    v-model = "input.requirements[i].done"
+                    :class = "{ hidden: onPrint }"
+                    placeholder = "Name"
+                    true-color = "green"
+                    false-color = "red"
+                    class = "right coc-margin-x-5px coc-margin-top-5px"
+                    @input = "input.requirements[i].created_at = $moment()">
+                    <icon 
+                      slot="open" 
+                      type = "md-checkmark" />
+                    <icon 
+                      slot="close" 
+                      type = "md-close" />
+                  </i-switch>
+                  <icon 
+                    v-if = "onPrint && job.requirements[i].done"
+                    type = "md-checkmark"
+                    class = "coc-success-text" />
+                  <icon 
+                    v-if = "onPrint && !job.requirements[i].done"
+                    type = "md-close"
+                    class = "coc-error-text" />
+                </div>
+              </div>
+              <div 
+                :class = "{ hidden: onPrint }"
+                class="row coc-padding-y-3px coc-margin-y-3px">
+                <p 
+                  class = "coc-text-subtitle">Add Requirements</p>
+                <div class = "col s6">
+                  <i-input
+                    v-model = "requirements.name"
+                    placeholder = "Name"/>
+                </div>
+                <div class = "col s6">
+                  <Button
+                    icon = "ios-add-circle"
+                    type = "info"
+                    shape = "circle"
+                    class = "right"
+                    @click = "addRequirement" />
+                  <i-switch
+                    v-model = "requirements.done"
+                    placeholder = "Name"
+                    true-color = "green"
+                    false-color = "red"
+                    class = "right coc-margin-x-5px coc-margin-top-5px">
+                    <icon 
+                      slot="open" 
+                      type = "md-checkmark" />
+                    <icon 
+                      slot="close" 
+                      type = "md-close" />
+                  </i-switch>
+                </div>
+              </div>
+            </div>
+          </div>
+          <Divider 
+            v-if = "!onPrint"
             orientation = "left">Operations / Parts</Divider>
           <div class="col s12">
             <div
@@ -277,6 +378,7 @@
                   icon = "ios-cog"
                   light-model
                   clearable
+                  labeled
                   allow-autocomplete
                   @input = "handleAutocompleteSelectPart"
                   @coc-enter = "handleAutocompleteSelectPart"
@@ -292,6 +394,7 @@
                   :hide-status = "onPrint"
                   placeholder = "Price"
                   icon = "ios-pricetag"
+                  labeled
                   light-model />
               </div>
               <div 
@@ -302,20 +405,40 @@
                   :rules = "{ IsNumericString: true, NumberGreaterThan: -1 }"
                   :scope = "['add-part']"
                   :hide-status = "onPrint"
-                  placeholder = "Fees"
+                  placeholder = "Labor"
                   icon = "ios-cash"
+                  labeled
                   light-model />
               </div>
               <div 
                 :class = "{ hidden: onPrint }" 
                 class="col s12 coc-house-keeper">
                 <div class = "col l4 s12">
-                  <label class="coc-text-sm">Count</label><br>
-                  <input-number
-                    v-model = "externalInput.count" 
-                    :min = "1"
-                    placeholder = "Count"
-                    class = "coc-full-width" />
+                  <div class="col coc-padding-left-0">
+                    <label class="coc-text-sm">Count 
+                      <small
+                        v-if = "!partAutocompleteResponse && externalInput.name.length"
+                        class = "coc-warning-text" >
+                        Represents the stock count if defining a stock
+                      </small>
+                    </label>
+                    <br>
+                    <input-number
+                      v-model = "externalInput.count" 
+                      :min = "1"
+                      :class = "[{ 'coc-full-width': partAutocompleteResponse && externalInput.name.length }]"
+                      placeholder = "Count" />
+                  </div>
+                  <div 
+                    v-if = "!partAutocompleteResponse && externalInput.name.length" 
+                    class="col coc-house-keeper">
+                    <label class="coc-text-sm">Bought Price</label><br>
+                    <input-number
+                      v-model = "externalInput.boughtPrice"
+                      :min = "1"
+                      :class = "[{ 'coc-full-width': partAutocompleteResponse && externalInput.name.length }]"
+                      placeholder = "Count" />
+                  </div>
                 </div>
                 <div class = "col l4 s12">
                   <br>
@@ -335,6 +458,11 @@
                     local
                     reset
                     @coc-validation-passed = "handleAddPart" />
+                  <Button
+                    v-if = "!partAutocompleteResponse && externalInput.name.length"
+                    icon = " knocks-new"
+                    class = "right coc-padding-y-4px coc-margin-y-10px coc-margin-x-3px"
+                    @click = "addToStock">Define Stock</Button>
                 </div>
               </div>
               <div 
@@ -350,7 +478,7 @@
                   <tr class = "coc-border-bg coc-content-text">
                     <th :class="[{'coc-padding-y-10px': !onPrint}, {'coc-padding-y-4px': onPrint}]">Part</th>
                     <th :class="[{'coc-padding-y-10px': !onPrint}, {'coc-padding-y-4px': onPrint}]">Price</th>
-                    <th :class="[{'coc-padding-y-10px': !onPrint}, {'coc-padding-y-4px': onPrint}]">Fees</th>
+                    <th :class="[{'coc-padding-y-10px': !onPrint}, {'coc-padding-y-4px': onPrint}]">Labors</th>
                     <th :class="[{'coc-padding-y-10px': !onPrint}, {'coc-padding-y-4px': onPrint}]">Count</th>
                     <th :class="[{'coc-padding-y-10px': !onPrint}, {'coc-padding-y-4px': onPrint}]">Total</th>
                     <th
@@ -389,7 +517,7 @@
                 <table class = "full-width coc-border-1 coc-border-border coc-light-background-bg">
                   <tr class="center full-width coc-border-bg coc-content-text">
                     <th :class="[{'coc-padding-y-10px': !onPrint}, {'coc-padding-y-4px': onPrint}]">Total Prices</th>
-                    <th :class="[{'coc-padding-y-10px': !onPrint}, {'coc-padding-y-4px': onPrint}]">Total Fees</th>
+                    <th :class="[{'coc-padding-y-10px': !onPrint}, {'coc-padding-y-4px': onPrint}]">Total Labors</th>
                     <th :class="[{'coc-padding-y-10px': !onPrint}, {'coc-padding-y-4px': onPrint}]">Total</th>
                   </tr>
                   <tr class="center full-width">
@@ -465,6 +593,10 @@ export default {
       onPrint: false,
       fetchError: null,
       job: null,
+      requirements: {
+        name: '',
+        done: false
+      },
       externalInput: {
         name: '',
         price: '',
@@ -476,6 +608,7 @@ export default {
         notes: '',
         complain: '',
         reciptionist: '',
+        requirements: [],
         car: {
           brand: '',
           model: '',
@@ -510,6 +643,15 @@ export default {
           this.input.notes = this.input.notes ? this.input.notes : ' '
           this.input.complain = this.input.complain ? this.input.complain : ' '
           document.title = `Techno-Service | Job #${res.data.job_no}`
+          if (this.$route.query.scroll) {
+            setTimeout(() => {
+              const eTarget = document.getElementById(this.$route.query.scroll)
+              if (eTarget) {
+                eTarget.scrollIntoView()
+                this.$router.push(`/jobs/${this.$route.params.id}`)
+              }
+            }, 1000)
+          }
         })
         .catch(err => {
           this.fetchError = err
@@ -548,6 +690,7 @@ export default {
       return {
         ...operation,
         name: operation.name,
+        count: operation.count,
         price: parseFloat(operation.price, 10),
         fees: parseFloat(operation.fees, 10)
       }
@@ -563,6 +706,7 @@ export default {
       return this.$_.pick(temp, [
         'car',
         'client',
+        'requirements',
         'reciptionist',
         'complain',
         'notes',
@@ -582,6 +726,11 @@ export default {
     handleAutocompleteSelectPart() {
       setTimeout(() => {
         const ename = this.externalInput.name
+        if (
+          !this.$refs.partInput ||
+          !this.$refs.partInput.autocompleteRetriever.response
+        )
+          return
         const response = this.$refs.partInput.autocompleteRetriever.response.stock.filter(
           c => c.name === ename
         )
@@ -593,7 +742,12 @@ export default {
         } else {
           this.partAutocompleteResponse = null
           this.externalInput = {
-            ...this.$_.pick(this.externalInput, ['name', 'price', 'fees']),
+            ...this.$_.pick(this.externalInput, [
+              'name',
+              'price',
+              'fees',
+              'count'
+            ]),
             makeMove: false
           }
         }
@@ -610,6 +764,18 @@ export default {
       }
       return result
     },
+    addRequirement() {
+      if (this.requirements.name.length) {
+        this.input.requirements.push({
+          ...this.$_.cloneDeep(this.requirements),
+          created_at: this.$moment()
+        })
+        this.requirements.name = ''
+        this.requirements.done = false
+      } else {
+        this.$Message.error('No description added')
+      }
+    },
     print() {
       if (this.onPrint) {
         this.onPrint = false
@@ -619,6 +785,32 @@ export default {
       setTimeout(() => {
         window.print()
       }, 500)
+    },
+    addToStock() {
+      this.$axios({
+        method: 'post',
+        url: '/stock',
+        data: {
+          external: 'false',
+          name: this.externalInput.name,
+          count: this.externalInput.count,
+          price: this.externalInput.boughtPrice,
+          category: this.externalInput.name,
+          points: 0,
+          car_compatibility: [this.job.car],
+          quick_add: true
+        }
+      }).then(res => {
+        this.externalInput = { ...res.data }
+        this.externalInput.makeMove = true
+        const tempName = this.externalInput.name
+        this.externalInput.name = ''
+        this.$refs.partInput.autocompleteInvoker()
+        setTimeout(() => {
+          this.externalInput.name = tempName
+          this.$refs.partInput.focus()
+        }, 700)
+      })
     }
     // mapPartsAutoComplete(res) {
     //   const allOperations = this.merge(res.jobs.map(j => j.operations))

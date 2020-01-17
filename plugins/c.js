@@ -61,6 +61,18 @@ export default ({ app: { router, $axios }, env }, inject) => {
       }
     }
   ])
-  COC.Config.Defaults({ Docker })
+  const Loader = {
+    spinner: [
+      'ivu-icon',
+      'knocks-loader',
+      'coc-spin',
+      'text-lg',
+      'center',
+      'coc-white-text'
+    ],
+    placeholder: '',
+    placeholderClass: 'coc-content-text text-lg block'
+  }
+  COC.Config.Defaults({ Docker, Loader })
   inject('coc', COC)
 }

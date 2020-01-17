@@ -1,7 +1,7 @@
 // Main Theme
 $colors-list: (
 // Primary
-"primary": #2d8cf0,
+"primary": #ff9900,
 "light-primary": #5cadff,
 "primary-alpha-first": rgba(33, 150, 243, 0.2),
 "primary-alpha-half": rgba(33, 150, 243, 0.5),
@@ -48,9 +48,9 @@ $colors-list: (
 "black": #000,
 "carbon": #2d2e2e,
 "light-background":#ffffff,
-"background":#f8f8f9,
-"dark-background":#e7e7e7,
-"primary-background":#ffffff,
+"background":#36454f,
+"dark-background":#171d22,
+"primary-background":#212b31,
 );
 // Borders
 $border-radius: (
@@ -73,6 +73,7 @@ $typography-sizes: (
 	"super": 74px,
 	// Inhereted
 	"xs": 50%,
+	"sm-1": 65%,
 	"sm": 80%,
 	"md": 100%,
 	"md-1": 110%,

@@ -51,12 +51,12 @@ import './assets/sass/index.scss'
 
 // Injecting Into Coc Core
 
+COC.$ = $
 COC.Arrays = Arrays
 COC.Queue = Queue
 COC.Logger = Logger
 COC.CircularQueue = CircularQueue
 COC.Objects = Objects
-COC.$ = $
 COC.Event = Event
 COC.FormController = FormController
 COC.Validator = Validator

@@ -1,5 +1,5 @@
 <template>
-  <card title = "Add To Stock">
+  <card :title = "mode === 'post' ? 'Add To Stock' : 'Edit Stock'">
     <divider orientation = "left">Item</divider>
     <div class="row">
       <div class="col s12 l4 m6">
@@ -22,6 +22,7 @@
       </div>
       <div class="col s12 l4 m6">
         <coc-input
+          ref = "price"
           :scope = "[`add-stock-${_uid}`]"
           :rules = "{
             HasValue: true,
@@ -82,6 +83,7 @@
       <div class="col s12 l4 m6">
         <coc-input
           v-coc-loading.ivu-icon.ivu-icon-ios-checkmark-circle.coc-success-text.text-md-2 = "input.external"
+          ref = "points"
           :scope = "input.external ? null : ['add-stock']"
           :rules = "input.external ? null : {
             HasValue: true,
@@ -97,6 +99,7 @@
       <div class="col s12 l4 m6">
         <coc-input
           v-coc-loading.ivu-icon.ivu-icon-ios-checkmark-circle.coc-success-text.text-md-2 = "input.external"
+          ref = "count"
           :scope = "input.external ? null : ['add-stock']"
           :rules = "input.external ? null : {
             HasValue: true,
@@ -169,7 +172,7 @@
               type = "default"
               placeholder = "Add"
               icon = "ios-add-circle"
-              class = "right coc-padding-y-20px"
+              class = "right coc-margin-y-20px"
               local
               @coc-validation-passed = "handleAddPart" />
           </div>
@@ -217,20 +220,46 @@
     <div class="row">
       <coc-button
         :scope = "[`add-stock-${_uid}`]"
-        :request = "{ url: '/stock', method: 'post', xdata: formatInput() }"
+        :request = "{ url: init && init._id && mode === 'put' ? `/stock/${init._id}` : '/stock', method: mode, xdata: formatInput() }"
         placeholder = "Submit"
         class = "right"
-        reset />
+        reset
+        @coc-submit-accepted = "handleAccept"/>
     </div>
   </card>
 </template>
 
 <script>
 import brands from '~/plugins/brands'
+
+const input = {
+  name: '',
+  category: '',
+  points: 0,
+  external: false,
+  price: 0,
+  count: 0,
+  vendor: {
+    name: '',
+    phone: '',
+    address: ''
+  }
+}
 export default {
   name: 'AddStock',
+  props: {
+    mode: {
+      type: String,
+      default: 'post'
+    },
+    init: {
+      type: Object,
+      default: null
+    }
+  },
   data() {
     return {
+      filterBased: ['price', 'count', 'points'],
       isMounted: false,
       brands,
       externalInput: {
@@ -241,17 +270,47 @@ export default {
         }
       },
       cars: [],
-      input: {
-        name: '',
-        category: '',
-        points: 0,
-        external: false,
-        price: 0,
-        count: 0,
-        vendor: {
-          name: '',
-          phone: '',
-          address: ''
+      input
+    }
+  },
+  watch: {
+    mode: {
+      // immediate: true,
+      handler(val) {
+        setTimeout(() => {
+          if (val === 'post') {
+            this.input = input
+            this.cars = []
+          }
+        }, 700)
+      }
+    },
+    init: {
+      deep: true,
+      immediate: true,
+      handler(val) {
+        if (this.mode === 'put' && val) {
+          // Clean First
+          this.input = input
+          setTimeout(() => {
+            let temp = {}
+            temp = this.$_.cloneDeep(val)
+            if (!val.vendor) {
+              temp.vendor = {
+                name: '',
+                phone: '',
+                address: ''
+              }
+            }
+            let i
+            for (i = 0; i < this.filterBased.length; i += 1)
+              if (this.$refs[this.filterBased[i]])
+                this.$refs[this.filterBased[i]].update(val[this.filterBased[i]])
+            this.cars = val.car_compatibility
+            this.input = temp
+          }, 1000)
+        } else {
+          this.input = input
         }
       }
     }
@@ -263,7 +322,7 @@ export default {
   },
   methods: {
     handleFilter(e) {
-      console.log(typeof e)
+      // console.log(typeof e)
     },
     formatInput() {
       const result = this.$_.cloneDeep(this.input)
@@ -285,7 +344,10 @@ export default {
     },
     handleAddPart(e) {
       this.cars.push(this.$_.clone(this.externalInput.car))
-      console.log(e)
+      // console.log(e)
+    },
+    handleAccept(e) {
+      this.$emit('success', e.meta.response)
     }
   }
 }

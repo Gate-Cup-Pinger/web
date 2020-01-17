@@ -1,5 +1,21 @@
 <template>
-  <div>
+  <Button
+    :type = "type"
+    :ghost = "plain"
+    :shape = "circle ? 'circle': null"
+    :round = "round"
+    :loading = "isLoading"
+    :class = "classes"
+    :icon = "icon"
+    :size = "size"
+    :long = "long"
+    v-bind = "bind"
+    :disabled = "disabled"
+    @click = "construct()">
+    <slot
+      name = "default">
+      <template v-if = "placeholder && placeholder.length">{{ placeholder }}</template>
+    </slot>
     <coc-axios
       v-if = "!local"
       v-bind = "request"
@@ -8,25 +24,7 @@
       prevent-on-mount
       @success = "handleSubmit($event)"
       @catch = "handleCatch($event)"/>
-    <Button
-      :type = "type"
-      :ghost = "plain"
-      :shape = "circle ? 'circle': null"
-      :round = "round"
-      :loading = "isLoading"
-      :class = "classes"
-      :icon = "icon"
-      :size = "size"
-      :long = "long"
-      v-bind = "bind"
-      :disabled = "disabled"
-      @click = "construct()">
-      <slot
-        name = "default">
-        <template v-if = "placeholder && placeholder.length">{{ placeholder }}</template>
-      </slot>
-    </Button>
-  </div>
+  </Button>
 </template>
 <script>
 export default {
@@ -223,6 +221,7 @@ export default {
   },
   data() {
     return {
+      exists: true,
       retriever: { loading: false },
       onSubmit: false,
       errorStack: [],
@@ -270,7 +269,8 @@ export default {
           networkErrors: this.networkErrors,
           response: this.retriever.response,
           progress: this.retriever.progress,
-          xdata: this.xdata
+          xdata: this.xdata,
+          retriever: this.retriever
         }
       }
     }
@@ -284,10 +284,13 @@ export default {
     }
   },
   mounted() {
+    // console.log('btn mnt')
+    this.exists = true
     this.emit()
     const vm = this
     this.eventController.Start()
     this.eventController.ReceiveMeta('valid', payloads => {
+      if (!vm.exists) return
       if (payloads.credentials === false || payloads.pennding) {
         vm.errorStack.push(payloads)
       }
@@ -314,6 +317,17 @@ export default {
       }
     })
     this.eventController.ReceiveScope('COCFormItemRegister', this.register)
+  },
+  beforeDestroy() {
+    // console.log('btn des')
+    this.exists = false
+    this.$root.$off([
+      'COCFormController',
+      'COCFormItemRegister',
+      'COCFormMeta',
+      'COCFormAskForRegister'
+    ])
+    this.checkedFormMembers = null
   },
   methods: {
     construct() {
@@ -347,10 +361,12 @@ export default {
       if (!this.ignore) {
         this.waitingLocalResponse = true
         this.eventController.Send(null, 'COCFormAskForRegister')
-        this.eventController.Send({
-          controller: 'validate',
-          credentials: 'meta'
-        })
+        setTimeout(() => {
+          this.eventController.Send({
+            controller: 'validate',
+            credentials: 'meta'
+          })
+        }, this.validationTolerenceTime)
       }
       //Check and Call the aruguments callback
       if (typeof arguments[arguments.length - 1] == 'function') {
@@ -396,6 +412,7 @@ export default {
         this.$Notice.error({
           title: message.title === undefined ? 'Whoops!' : message.title,
           render: message.render,
+          duration: 6000,
           desc:
             message.body === undefined
               ? 'There`re some messing fields.'

@@ -116,7 +116,7 @@
               <label class="coc-subcolor-text coc-text-small">Car Brand</label>
               <coc-input
                 v-model = "externalInput.car.brand"
-                :scope = "['create-job']"
+                :scope = "['add-car']"
                 :rules = "{ HasValue: true }"
                 :data = "brands"
                 :icon = "externalInput.car.brand && externalInput.car.brand.length ? null : 'ios-color-filter'"

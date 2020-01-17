@@ -29,60 +29,9 @@ export default {
 }
 </script>
 <style>
-@font-face {
-  font-family: 'Niramit';
-  src: url('/fonts/Niramit/Niramit-Regular.ttf');
-  font-weight: 250;
-  font-style: normal;
-}
-@font-face {
-  font-family: 'Niramit';
-  src: url('/fonts/Niramit/Niramit-Bold.ttf');
-  font-weight: bold;
-  font-style: normal;
-}
-@font-face {
-  font-family: 'Niramit';
-  src: url('/fonts/Niramit/Niramit-BoldItalic.ttf');
-  font-weight: bold;
-  font-style: italic;
-}
-@font-face {
-  font-family: 'Niramit';
-  src: url('/fonts/Niramit/Niramit-LightItalic.ttf');
-  font-weight: light;
-  font-style: italic;
-}
-@font-face {
-  font-family: 'Niramit';
-  src: url('/fonts/Niramit/Niramit-Light.ttf');
-  font-weight: light;
-  font-style: normal;
-}
 html,
-body,
-p,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
-span,
-li,
-button,
-div {
-  font-family: 'Niramit', sans-serif;
-}
-html {
-  font-family: 'Niramit', sans-serif;
-  font-size: 16px;
-  word-spacing: 1px;
-  -ms-text-size-adjust: 100%;
-  -webkit-text-size-adjust: 100%;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-  box-sizing: border-box;
+body {
+  background-color: #2d2e2e !important;
 }
 
 *,
@@ -119,5 +68,8 @@ html {
 .button--grey:hover {
   color: #fff;
   background-color: #35495e;
+}
+.coc-sider .ivu-menu-item.ivu-menu-item-active.ivu-menu-item-selected {
+  background-color: #293542 !important;
 }
 </style>

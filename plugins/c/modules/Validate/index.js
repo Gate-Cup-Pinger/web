@@ -34,7 +34,9 @@ export default class Validator {
       'IsEvenNumber',
       'IsOddNumber',
       'NumberGreaterThan',
+      'NumberGreaterThanOrEqual',
       'NumberLessThan',
+      'NumberLessThanOrEqual',
       'NumberBetween',
       // Date Validations
       'MaxDate',
@@ -104,6 +106,10 @@ export default class Validator {
 
   SetDefaultErrorIcon(val = 'ivu-icon') {
     this.DefaultErrorIcon = val
+  }
+
+  SetDefaultErrorMessages(messages) {
+    this.ErrorMessages = messages
   }
 
   SetErrorMessage(rule = 'HasValue', messageOrOption = 'message', icon = null) {
@@ -383,22 +389,35 @@ export default class Validator {
 
   IsOddNumber() {
     if (!this.ValueRequired && !this.HasValue()) return true
-    return this.Val % 2 !== 0
+    return parseFloat(this.Val, 10) % 2 !== 0
   }
 
   NumberGreaterThan(max = 10) {
     if (!this.ValueRequired && !this.HasValue()) return true
-    return this.Val > max
+    return parseFloat(this.Val, 10) > parseFloat(max, 10)
+  }
+
+  NumberGreaterThanOrEqual(max = 10) {
+    if (!this.ValueRequired && !this.HasValue()) return true
+    return parseFloat(this.Val, 10) >= parseFloat(max, 10)
   }
 
   NumberLessThan(min = 0, val) {
     if (!this.ValueRequired && !this.HasValue()) return true
-    return this.Val < min
+    return parseFloat(this.Val, 10) < parseFloat(min, 10)
+  }
+
+  NumberLessThanOrEqual(min = 0, val) {
+    if (!this.ValueRequired && !this.HasValue()) return true
+    return parseFloat(this.Val, 10) <= parseFloat(min, 10)
   }
 
   NumberBetween(limits = { min: 2, max: 10 }) {
     if (!this.ValueRequired && !this.HasValue()) return true
-    return this.Val >= limits.min && this.Val <= limits.max
+    return (
+      parseFloat(this.Val, 10) >= parseFloat(limits.min, 10) &&
+      parseFloat(this.Val, 10) <= parseFloat(limits.max, 10)
+    )
   }
 
   // Date Validations
@@ -564,6 +583,7 @@ export default class Validator {
   resolveArgs(option) {
     if (
       typeof option === 'object' &&
+      !Array.isArray(option) &&
       (option.args !== undefined ||
         (option.active !== undefined || option.message !== undefined))
     ) {
